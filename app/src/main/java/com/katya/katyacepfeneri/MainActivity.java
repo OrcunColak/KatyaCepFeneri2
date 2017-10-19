@@ -3,6 +3,7 @@ package com.katya.katyacepfeneri;
 import android.app.Activity;
 import android.os.Bundle;
 
+//Main window
 public class MainActivity extends Activity {
 
     @Override
