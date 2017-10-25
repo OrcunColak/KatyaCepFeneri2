@@ -14,12 +14,19 @@ import android.widget.Button;
 import android.support.v4.app.ActivityCompat;
 import android.widget.Toast;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 //Main window
 public class MainActivity extends Activity {
 
-    boolean hasFlash;
+    //boolean hasFlash;
     Button feneriAc;
     Button feneriKapa;
+    Button isildakAc;
+    Button isildakKapa;
+    Timer timer;
+
     Camera camera;
     private static final int MY_CAMERA_REQUEST_CODE = 100;
 
@@ -65,11 +72,12 @@ public class MainActivity extends Activity {
         //This is called only once
         camera = Camera.open();
 
-        feneriAc =  (Button)findViewById(R.id.buttonAc);
-        feneriKapa = (Button)findViewById(R.id.buttonKapa);
-
-        hasFlash = getApplicationContext().getPackageManager().
-                hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+        feneriAc =  (Button)findViewById(R.id.buttonFenerAc);
+        feneriKapa = (Button)findViewById(R.id.buttonFenerKapa);
+        isildakAc = (Button)findViewById(R.id.buttonIsildakAc);
+        isildakKapa = (Button)findViewById(R.id.buttonIsildakKapa);
+        /*hasFlash = getApplicationContext().getPackageManager().
+                hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);*/
 
         feneriAc.setOnClickListener( new View.OnClickListener() {
 
@@ -92,9 +100,50 @@ public class MainActivity extends Activity {
                 }
             }
         });
+
+        isildakAc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (timer == null){
+                    timer = new Timer();
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            if (isLightOn ()) {
+                                setLightOff();
+                            } else {
+                                setLightOn();
+                            }
+                        }
+                    },0,1000);
+
+                }
+
+            }
+        });
+        isildakKapa.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (timer != null){
+                    timer.cancel();
+                    timer = null;
+
+                    if (isLightOn()) {
+                        setLightOff();
+                    }
+
+                }
+
+            }
+        });
     }
 
     protected void onDestroy () {
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
+
         //This is called when back button is pressed
         camera.release();
     }

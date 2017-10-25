@@ -12,33 +12,51 @@
                     android:layout_width="0dp" android:layout_alignParentBottom="true"
                     tools:layout_editor_absoluteY="0dp" tools:layout_editor_absoluteX="0dp">
 
-    <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Arkadaşıma İthaf Edilmiştir"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" app:layout_constraintHorizontal_bias="0.546"
-            app:layout_constraintVertical_bias="0.243" android:id="@+id/textView"/>
+        <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Arkadaşıma İthaf Edilmiştir"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" app:layout_constraintHorizontal_bias="0.546"
+                app:layout_constraintVertical_bias="0.243" android:id="@+id/textView"
+        />
 
         <Button
-                android:id="@+id/buttonAc"
+                android:id="@+id/buttonFenerAc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
 
                 android:text="Feneri Aç" android:layout_below="@+id/textView" android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"/>
+                android:layout_alignParentStart="true"
+        />
 
 
         <Button
-                android:id="@+id/buttonKapa"
+                android:id="@+id/buttonFenerKapa"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
 
-                android:text="Feneri Kapa" android:layout_below="@+id/buttonAc" android:layout_alignParentLeft="true"
+                android:text="Feneri Kapa" android:layout_below="@+id/buttonFenerAc" android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
-                />
+        />
+        <Button
+                android:id="@+id/buttonIsildakAc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:text="Işıldak Aç" android:layout_below="@+id/buttonFenerKapa" android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+        />
+        <Button
+                android:id="@+id/buttonIsildakKapa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:text="Işıldak Kapa" android:layout_below="@+id/buttonIsildakAc" android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+        />
 
     </RelativeLayout>
 
