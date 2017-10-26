@@ -30,7 +30,7 @@ public class MainActivity extends Activity {
     Camera camera;
     private static final int MY_CAMERA_REQUEST_CODE = 100;
 
-    public static boolean hasPermissions(Context context, String... permissions) {
+    protected boolean hasPermissions(Context context, String... permissions) {
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                 context != null && permissions != null) {
             for (String permission : permissions) {
@@ -64,8 +64,10 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
 
-
         if (!hasPermissions(this,Manifest.permission.CAMERA)) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.CAMERA)) {
+                Toast.makeText (this,"Camera permission is required",Toast.LENGTH_SHORT).show();
+            }
             ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.CAMERA}, MY_CAMERA_REQUEST_CODE);
         }
 
