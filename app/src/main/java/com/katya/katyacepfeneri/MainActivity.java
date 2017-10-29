@@ -4,32 +4,62 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.hardware.Camera;
-import android.hardware.Camera.Parameters;
+
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.View;
 import android.widget.Button;
 import android.support.v4.app.ActivityCompat;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
+import com.katya.katyacepfeneri.camera.CameraOld;
+import com.katya.katyacepfeneri.camera.CameraSupport;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 //Main window
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements SensorEventListener {
 
     //boolean hasFlash;
-    Button feneriAc;
-    Button feneriKapa;
-    Button isildakAc;
-    Button isildakKapa;
-    Timer timer;
+    private Button feneriAc;
+    private Button feneriKapa;
+    private Button isildakAc;
+    private Button isildakKapa;
 
-    Camera camera;
+    private EditText edtTextPusula;
+
+    //Timer for isildak
+    private Timer timer;
+
+    // device sensor manager
+    private SensorManager sensorManager;
+
+    private CameraSupport cameraSupport;
+
     private static final int MY_CAMERA_REQUEST_CODE = 100;
 
+    private  int pusulaDerece = 0;
+
+    protected  void createCameraSupport () {
+       /* if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            cameraSupport = new CameraNew(context);
+        } else {
+            cameraSupport = new CameraOld();
+        }*/
+        cameraSupport = new CameraOld();
+
+    }
+
+    protected void openCamera () {
+        cameraSupport.openCamera(0);
+    }
     protected boolean hasPermissions(Context context, String... permissions) {
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                 context != null && permissions != null) {
@@ -61,6 +91,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
+
         setContentView(R.layout.activity_main);
 
 
@@ -70,14 +103,19 @@ public class MainActivity extends Activity {
             }
             ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.CAMERA}, MY_CAMERA_REQUEST_CODE);
         }
+        createCameraSupport ();
 
-        //This is called only once
-        camera = Camera.open();
+        // initialize your android device sensor capabilities
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
         feneriAc =  (Button)findViewById(R.id.buttonFenerAc);
         feneriKapa = (Button)findViewById(R.id.buttonFenerKapa);
         isildakAc = (Button)findViewById(R.id.buttonIsildakAc);
         isildakKapa = (Button)findViewById(R.id.buttonIsildakKapa);
+
+        // EditText that will tell the user what degree is he heading
+        edtTextPusula = (EditText) findViewById(R.id.edt_text_pusula);
+
         /*hasFlash = getApplicationContext().getPackageManager().
                 hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);*/
 
@@ -86,8 +124,10 @@ public class MainActivity extends Activity {
             @Override
             public void onClick (View v) {
 
-                if (isLightOn () == false) {
-                   setLightOn();
+                openCamera ();
+
+                if (cameraSupport.isFlashOn() == false) {
+                    cameraSupport.setFlashOn();
                 }
             }
         });
@@ -97,24 +137,32 @@ public class MainActivity extends Activity {
             @Override
             public void onClick (View v) {
 
-                if (isLightOn ()) {
-                    setLightOff();
+                if (cameraSupport.isFlashOn()) {
+                    cameraSupport.setFlashOff();
                 }
+                cameraSupport.releaseCamera();
             }
         });
 
         isildakAc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+
                 if (timer == null){
+
+                    openCamera ();
+
                     timer = new Timer();
+
+                    //1 second timer
                     timer.schedule(new TimerTask() {
                         @Override
                         public void run() {
-                            if (isLightOn ()) {
-                                setLightOff();
+                            if (cameraSupport.isFlashOn()) {
+                                cameraSupport.setFlashOff();
                             } else {
-                                setLightOn();
+                                cameraSupport.setFlashOn();
                             }
                         }
                     },0,1000);
@@ -130,16 +178,46 @@ public class MainActivity extends Activity {
                     timer.cancel();
                     timer = null;
 
-                    if (isLightOn()) {
-                        setLightOff();
+                    if (cameraSupport.isFlashOn()) {
+                        cameraSupport.setFlashOff();
                     }
 
+                    //Release the camera
+                    cameraSupport.releaseCamera();
                 }
 
             }
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // for the system's orientation sensor registered listeners
+        sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION),
+                SensorManager.SENSOR_DELAY_NORMAL);
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+    }
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // not in use
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+
+        // get the angle around the z-axis rotated
+        int degree = (int)event.values[0];
+        pusulaDerece = (int)((pusulaDerece * 0.90) + (degree * 0.10));
+        String str = String.format("%d",pusulaDerece);
+        edtTextPusula.setText(str);
+    }
     protected void onDestroy () {
         if (timer != null) {
             timer.cancel();
@@ -147,27 +225,11 @@ public class MainActivity extends Activity {
         }
 
         //This is called when back button is pressed
-        camera.release();
+        cameraSupport.releaseCamera();
+
+        // to stop the listener and save battery
+        sensorManager.unregisterListener(this);
     }
 
-    private void setLightOff () {
-        Parameters params = camera.getParameters();
-        params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-        camera.setParameters(params);
-        camera.stopPreview();
 
-    }
-
-    private void setLightOn () {
-        Parameters params = camera.getParameters();
-        params.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-        camera.setParameters(params);
-        camera.startPreview();
-
-    }
-
-    private boolean isLightOn () {
-        return Parameters.FLASH_MODE_TORCH.equals(camera.getParameters().getFlashMode());
-
-    }
 }
